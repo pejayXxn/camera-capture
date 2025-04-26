@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Camera By Pejay</title>
+  <title>Camera by Pejay</title>
   <style>
     body {
       margin: 0;
@@ -138,20 +138,22 @@
     const flash = document.getElementById('flash');
     const countdown = document.getElementById('countdown');
     const timerSelect = document.getElementById('timerSelect');
+    let facingMode = 'environment';
 
-    function startCamera(facingMode = 'environment') {
+    function startCamera(mode = 'environment') {
+      facingMode = mode;
+
       if (currentStream) {
         currentStream.getTracks().forEach(track => track.stop());
       }
 
       navigator.mediaDevices.getUserMedia({
-        video: { facingMode: facingMode }
+        video: { facingMode: mode }
       })
       .then(stream => {
         currentStream = stream;
         video.srcObject = stream;
 
-        // Fix front camera mirroring
         if (facingMode === 'user') {
           video.style.transform = 'scaleX(-1)';
         } else {
@@ -164,7 +166,7 @@
       });
     }
 
-    startCamera(); // Start with back cam
+    startCamera(); // Start with back camera by default
 
     function switchCamera(mode) {
       startCamera(mode);
@@ -193,17 +195,16 @@
       flashEffect();
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
+      context.save();
 
-      // Reset any previous transforms
-      context.setTransform(1, 0, 0, 1, 0, 0);
-
-      // If mirrored (front cam), flip the canvas drawing
-      if (video.style.transform === 'scaleX(-1)') {
+      if (facingMode === 'user') {
         context.translate(canvas.width, 0);
         context.scale(-1, 1);
       }
 
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      context.restore();
+
       canvas.style.display = 'block';
       video.style.display = 'none';
     }
@@ -239,31 +240,29 @@
     function collage2() {
       if (canvas.style.display === 'none') return;
 
-      const temp = document.createElement('canvas');
-      const tempCtx = temp.getContext('2d');
-      temp.width = canvas.width;
-      temp.height = canvas.height;
-      tempCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height);
+      const original = new Image();
+      original.src = canvas.toDataURL('image/png');
+      original.onload = () => {
+        context.clearRect(0, 0, canvas.width, canvas.height);
 
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      context.drawImage(temp, 0, 0, canvas.width / 2, canvas.height);
-      context.drawImage(temp, canvas.width / 2, 0, canvas.width / 2, canvas.height);
+        context.drawImage(original, 0, 0, canvas.width / 2, canvas.height);
+        context.drawImage(original, canvas.width / 2, 0, canvas.width / 2, canvas.height);
+      };
     }
 
     function collage4() {
       if (canvas.style.display === 'none') return;
 
-      const temp = document.createElement('canvas');
-      const tempCtx = temp.getContext('2d');
-      temp.width = canvas.width;
-      temp.height = canvas.height;
-      tempCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height);
+      const original = new Image();
+      original.src = canvas.toDataURL('image/png');
+      original.onload = () => {
+        context.clearRect(0, 0, canvas.width, canvas.height);
 
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      context.drawImage(temp, 0, 0, canvas.width / 2, canvas.height / 2);
-      context.drawImage(temp, canvas.width / 2, 0, canvas.width / 2, canvas.height / 2);
-      context.drawImage(temp, 0, canvas.height / 2, canvas.width / 2, canvas.height / 2);
-      context.drawImage(temp, canvas.width / 2, canvas.height / 2, canvas.width / 2, canvas.height / 2);
+        context.drawImage(original, 0, 0, canvas.width / 2, canvas.height / 2);
+        context.drawImage(original, canvas.width / 2, 0, canvas.width / 2, canvas.height / 2);
+        context.drawImage(original, 0, canvas.height / 2, canvas.width / 2, canvas.height / 2);
+        context.drawImage(original, canvas.width / 2, canvas.height / 2, canvas.width / 2, canvas.height / 2);
+      };
     }
   </script>
 
