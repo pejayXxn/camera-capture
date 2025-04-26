@@ -1,12 +1,13 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Camera by Pejay</title>
+  <title>Camera Capture</title>
   <style>
     body {
       margin: 0;
       padding: 0;
-      background: black;
+      background: linear-gradient(45deg, #1e3c72, #2a5298); /* Cool gradient background */
       font-family: 'Arial', sans-serif;
       display: flex;
       flex-direction: column;
@@ -14,148 +15,253 @@
       height: 100vh;
       overflow: hidden;
       position: relative;
-    }#flash {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: white;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s;
-  z-index: 2;
-}
+      color: white;
+    }
 
-#countdown {
-  position: absolute;
-  color: white;
-  font-size: 100px;
-  z-index: 3;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  font-weight: bold;
-}
+    #flash {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: white;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 2;
+    }
 
-.camera-view {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  position: relative;
-  background: #000;
-}
+    #countdown {
+      position: absolute;
+      color: white;
+      font-size: 100px;
+      z-index: 3;
+      top: 50%;
+      transform: translateY(-50%);
+      font-weight: bold;
+    }
 
-video, canvas {
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-}
+    .camera-view {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      position: relative;
+      background: #000;
+    }
 
-canvas {
-  display: none;
-}
+    video {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+    }
 
-.controls {
-  width: 100%;
-  background: #111;
-  padding: 10px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 5px;
-  border-top: 2px solid #222;
-}
+    canvas {
+      display: none;
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+    }
 
-button, select, input {
-  background: #222;
-  border: none;
-  color: white;
-  padding: 10px;
-  font-size: 14px;
-  border-radius: 50px;
-  cursor: pointer;
-}
+    .controls {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 2px solid #222;
+      position: absolute;
+      bottom: 0;
+      z-index: 3;
+    }
 
-button:hover, select:hover, input:hover {
-  background: #444;
-}
+    button, select {
+      background: #333;
+      border: none;
+      color: white;
+      padding: 15px 30px;
+      margin: 10px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+      min-width: 150px;
+      text-align: center;
+    }
 
-h1 {
-  position: absolute;
-  top: 10px;
-  color: white;
-  font-size: 18px;
-  width: 100%;
-  text-align: center;
-  z-index: 3;
-}
+    button:hover, select:hover {
+      background: #444;
+    }
 
+    h1 {
+      position: absolute;
+      top: 10px;
+      color: white;
+      font-size: 24px;
+      text-align: center;
+      width: 100%;
+      z-index: 3;
+    }
+
+    .filter-select {
+      background: #444;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 16px;
+      color: white;
+    }
+
+    .filter-menu {
+      position: absolute;
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 8px;
+      top: 100px;
+      display: none;
+      z-index: 4;
+    }
+
+    .filter-menu button {
+      background-color: #333;
+      padding: 10px 15px;
+      margin: 5px;
+      border-radius: 8px;
+      color: white;
+    }
+
+    .filter-menu button:hover {
+      background: #444;
+    }
+
+    /* Layout changes to move the buttons */
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+      z-index: 3;
+      position: absolute;
+      bottom: 30px;
+    }
+
+    .control-buttons {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      max-width: 100%;
+      width: 90%;
+    }
+
+    .control-buttons button {
+      margin: 10px;
+      padding: 10px 20px;
+    }
+
+    .extra-settings {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .extra-settings select {
+      margin: 5px;
+      padding: 10px 15px;
+    }
   </style>
 </head>
 <body>
+
   <div id="flash"></div>
   <div id="countdown"></div>
-  <h1>Camera by Pejay</h1>  <div class="camera-view">
+  <h1>Camera by Pejay</h1> <!-- Updated title -->
+
+  <div class="camera-view">
     <video id="video" autoplay playsinline></video>
     <canvas id="canvas"></canvas>
-  </div>  <div class="controls">
-    <button onclick="startTimerCapture()">Capture</button>
-    <select id="timerSelect">
-      <option value="0">Timer: Off</option>
-      <option value="3">Timer: 3s</option>
-      <option value="5">Timer: 5s</option>
-      <option value="10">Timer: 10s</option>
-    </select><button onclick="download()">Download</button>
-<button onclick="clearPhoto()">Clear</button>
+  </div>
 
-<select id="filterSelect" onchange="applySelectedFilter()">
-  <option value="none">No Filter</option>
-  <option value="grayscale(100%)">Black & White</option>
-  <option value="sepia(100%)">Sepia</option>
-  <option value="contrast(150%)">High Contrast</option>
-  <option value="brightness(120%)">Bright</option>
-  <option value="blur(2px)">Blur</option>
-</select>
+  <div class="button-container">
+    <div class="control-buttons">
+      <button onclick="startTimerCapture()">Capture</button>
+      <button onclick="download()">Download</button>
+      <button onclick="clearPhoto()">Clear</button>
+      <button onclick="applyBW()">B&W</button>
+      <button onclick="collage2()">2 Box</button>
+      <button onclick="collage4()">4 Box</button>
+      <button onclick="switchCamera('user')">Front Cam</button>
+      <button onclick="switchCamera('environment')">Back Cam</button>
+      <button onclick="toggleFilterMenu()">Filters</button>
+      <button onclick="startAutoCapture()">Auto Capture</button> <!-- Auto Capture Button -->
+    </div>
 
-<button onclick="collage2()">2 Box</button>
-<button onclick="collage4()">4 Box</button>
+    <div class="extra-settings">
+      <select id="autoCaptureShots">
+        <option value="3">3 Shots</option>
+        <option value="5">5 Shots</option>
+        <option value="10">10 Shots</option>
+      </select>
+      <select id="autoCaptureInterval">
+        <option value="3">Interval: 3s</option>
+        <option value="5">Interval: 5s</option>
+        <option value="10">Interval: 10s</option>
+      </select>
+    </div>
+  </div>
 
-<button onclick="switchCamera('user')">Front Cam</button>
-<button onclick="switchCamera('environment')">Back Cam</button>
+  <div class="filter-menu" id="filterMenu">
+    <button onclick="applyFilter('grayscale(100%)')">Black & White</button>
+    <button onclick="applyFilter('sepia(100%)')">Sepia</button>
+    <button onclick="applyFilter('contrast(200%)')">High Contrast</button>
+    <button onclick="applyFilter('invert(100%)')">Invert</button>
+    <button onclick="applyFilter('brightness(150%)')">Brighten</button>
+  </div>
 
-<input id="autoShots" type="number" placeholder="Shots" style="width:70px;">
-<input id="autoDelay" type="number" placeholder="Delay" style="width:70px;">
-<button onclick="startAutoCapture()">Auto Capture</button>
-
-  </div>  <script>
+  <script>
     let currentStream;
-    let facingMode = 'environment';
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const context = canvas.getContext('2d');
     const flash = document.getElementById('flash');
     const countdown = document.getElementById('countdown');
     const timerSelect = document.getElementById('timerSelect');
-    const filterSelect = document.getElementById('filterSelect');
+    const filterMenu = document.getElementById('filterMenu');
+    const autoCaptureShots = document.getElementById('autoCaptureShots');
+    const autoCaptureInterval = document.getElementById('autoCaptureInterval');
+    
+    let autoCaptureActive = false;
+    let autoCaptureShotsCount = 0;
+    let autoCaptureIntervalTime = 0;
 
-    function startCamera(mode = 'environment') {
-      facingMode = mode;
+    function startCamera(facingMode = 'environment') {
       if (currentStream) {
         currentStream.getTracks().forEach(track => track.stop());
       }
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: mode } })
-        .then(stream => {
-          currentStream = stream;
-          video.srcObject = stream;
-          video.style.transform = (mode === 'user') ? 'scaleX(-1)' : 'none';
-        })
-        .catch(err => {
-          alert('Camera access was denied.');
-          console.error(err);
-        });
+
+      navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facingMode }
+      })
+      .then(stream => {
+        currentStream = stream;
+        video.srcObject = stream;
+
+        // Fix front camera mirroring
+        if (facingMode === 'user') {
+          video.style.transform = 'scaleX(1)';
+        } else {
+          video.style.transform = 'none';
+        }
+      })
+      .catch(err => {
+        alert('Camera access was denied.');
+        console.error(err);
+      });
     }
 
-    startCamera();
+    startCamera(); // Start with back cam
 
     function switchCamera(mode) {
       startCamera(mode);
@@ -184,29 +290,19 @@ h1 {
       flashEffect();
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      context.clearRect(0, 0, canvas.width, canvas.height);
-
-      if (facingMode === 'user') {
-        context.save();
-        context.scale(-1, 1);
-        context.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
-        context.restore();
-      } else {
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      }
-
-      applySelectedFilter();
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
       canvas.style.display = 'block';
       video.style.display = 'none';
     }
 
     function flashEffect() {
       flash.style.opacity = 1;
-      setTimeout(() => { flash.style.opacity = 0; }, 150);
+      setTimeout(() => {
+        flash.style.opacity = 0;
+      }, 150);
     }
 
     function download() {
-      applySelectedFilter(true);
       const link = document.createElement('a');
       link.download = 'photo.png';
       link.href = canvas.toDataURL('image/png');
@@ -219,13 +315,12 @@ h1 {
       video.style.display = 'block';
     }
 
-    function applySelectedFilter(forceDownload = false) {
-      const selected = filterSelect.value;
-      canvas.style.filter = selected;
-      if (forceDownload) {
-        context.filter = selected;
-        capture();
-      }
+    function applyBW() {
+      applyFilter('grayscale(100%)');
+    }
+
+    function applyFilter(filter) {
+      canvas.style.filter = filter;
     }
 
     function collage2() {
@@ -235,7 +330,7 @@ h1 {
       const tempCtx = temp.getContext('2d');
       temp.width = canvas.width;
       temp.height = canvas.height;
-      tempCtx.drawImage(canvas, 0, 0);
+      tempCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height);
 
       context.clearRect(0, 0, canvas.width, canvas.height);
       context.drawImage(temp, 0, 0, canvas.width / 2, canvas.height);
@@ -249,7 +344,7 @@ h1 {
       const tempCtx = temp.getContext('2d');
       temp.width = canvas.width;
       temp.height = canvas.height;
-      tempCtx.drawImage(canvas, 0, 0);
+      tempCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height);
 
       context.clearRect(0, 0, canvas.width, canvas.height);
       context.drawImage(temp, 0, 0, canvas.width / 2, canvas.height / 2);
@@ -258,20 +353,34 @@ h1 {
       context.drawImage(temp, canvas.width / 2, canvas.height / 2, canvas.width / 2, canvas.height / 2);
     }
 
-    function startAutoCapture() {
-      let shots = parseInt(document.getElementById('autoShots').value) || 0;
-      let delay = parseInt(document.getElementById('autoDelay').value) || 3;
-      if (shots <= 0) return;
-
-      let count = 0;
-      const interval = setInterval(() => {
-        if (count >= shots) {
-          clearInterval(interval);
-          return;
-        }
-        capture();
-        count++;
-      }, delay * 1000);
+    function toggleFilterMenu() {
+      filterMenu.style.display = (filterMenu.style.display === 'block') ? 'none' : 'block';
     }
-  </script></body>
-  </html>
+
+    function startAutoCapture() {
+      if (autoCaptureActive) {
+        autoCaptureActive = false;
+        return;
+      }
+
+      autoCaptureActive = true;
+      autoCaptureShotsCount = parseInt(autoCaptureShots.value);
+      autoCaptureIntervalTime = parseInt(autoCaptureInterval.value);
+
+      captureAuto();
+    }
+
+    function captureAuto() {
+      if (autoCaptureShotsCount <= 0 || !autoCaptureActive) return;
+
+      startTimerCapture();
+      autoCaptureShotsCount--;
+
+      if (autoCaptureShotsCount > 0) {
+        setTimeout(captureAuto, autoCaptureIntervalTime * 1000);
+      }
+    }
+
+  </script>
+</body>
+</html>
