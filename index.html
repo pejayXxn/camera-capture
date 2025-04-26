@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camera Capture and Collage</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    video {
+      width: 100%;
+      height: auto;
+      border: 1px solid black;
+      margin-bottom: 20px;
+    }
+    #canvas {
+      display: none;
+    }
+    .bw-filter {
+      filter: grayscale(100%);
+    }
+    .collage {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .collage img {
+      margin: 10px;
+      border: 2px solid black;
+    }
+    .two-box img {
+      width: 45%;
+    }
+    .four-box img {
+      width: 45%;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Camera Capture and Edit</h1>
+
+  <!-- Video display -->
+  <video id="video" autoplay></video>
+
+  <!-- Canvas to capture photo -->
+  <canvas id="canvas"></canvas>
+
+  <!-- Buttons -->
+  <button id="capture">Capture</button>
+  <button id="bw-filter">Black and White</button>
+  <button id="two-box">2-Box Layout</button>
+  <button id="four-box">4-Box Layout</button>
+  <button id="normal">Normal Layout</button>
+
+  <div id="collage" class="collage"></div>
+
+  <script>
+    const videoElement = document.getElementById('video');
+    const canvasElement = document.getElementById('canvas');
+    const captureButton = document.getElementById('capture');
+    const bwFilterButton = document.getElementById('bw-filter');
+    const twoBoxButton = document.getElementById('two-box');
+    const fourBoxButton = document.getElementById('four-box');
+    const normalButton = document.getElementById('normal');
+    const collageContainer = document.getElementById('collage');
+    const context = canvasElement.getContext('2d');
+    let capturedImages = [];
+
+    // Request camera permission
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        videoElement.srcObject = stream;
+      } catch (error) {
+        console.log('Error accessing the camera: ', error);
+        alert('Please grant permission to access the camera.');
+      }
+    }
+
+    // Capture photo
+    captureButton.addEventListener('click', () => {
+      canvasElement.width = videoElement.videoWidth;
+      canvasElement.height = videoElement.videoHeight;
+      context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+      capturedImages.push(canvasElement.toDataURL());
+      displayImages();
+    });
+
+    // Apply black-and-white filter
+    bwFilterButton.addEventListener('click', () => {
+      canvasElement.classList.toggle('bw-filter');
+    });
+
+    // Display images in collage layout
+    function displayImages() {
+      collageContainer.innerHTML = '';
+      capturedImages.forEach((imgData) => {
+        const imgElement = document.createElement('img');
+        imgElement.src = imgData;
+        collageContainer.appendChild(imgElement);
+      });
+    }
+
+    // Apply 2-box layout
+    twoBoxButton.addEventListener('click', () => {
+      collageContainer.classList.remove('four-box', 'normal');
+      collageContainer.classList.add('two-box');
+    });
+
+    // Apply 4-box layout
+    fourBoxButton.addEventListener('click', () => {
+      collageContainer.classList.remove('two-box', 'normal');
+      collageContainer.classList.add('four-box');
+    });
+
+    // Apply normal layout
+    normalButton.addEventListener('click', () => {
+      collageContainer.classList.remove('two-box', 'four-box');
+      collageContainer.classList.add('normal');
+    });
+
+    // Start the camera on page load
+    startCamera();
+  </script>
+
+</body>
+</html>
