@@ -99,20 +99,6 @@
       width: 100%;
       z-index: 3;
     }
-
-    .gallery {
-      display: flex;
-      flex-wrap: wrap;
-      margin-top: 20px;
-    }
-
-    .gallery img {
-      width: 100px;
-      height: 100px;
-      object-fit: cover;
-      margin: 5px;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
@@ -144,8 +130,6 @@
     <button onclick="switchCamera('environment')">Back Cam</button>
   </div>
 
-  <div class="gallery" id="gallery"></div>
-
   <script>
     let currentStream;
     const video = document.getElementById('video');
@@ -154,9 +138,9 @@
     const flash = document.getElementById('flash');
     const countdown = document.getElementById('countdown');
     const timerSelect = document.getElementById('timerSelect');
-    const gallery = document.getElementById('gallery');
 
     let photos = [];
+    let bwApplied = false;
 
     function startCamera(facingMode = 'environment') {
       if (currentStream) {
@@ -170,9 +154,9 @@
         currentStream = stream;
         video.srcObject = stream;
 
-        // Fix front camera mirroring
+        // Fix front camera mirroring (no mirroring for front cam)
         if (facingMode === 'user') {
-          video.style.transform = 'scaleX(-1)';
+          video.style.transform = 'scaleX(1)'; // No mirroring for front camera
         } else {
           video.style.transform = 'none';
         }
@@ -216,18 +200,9 @@
       canvas.style.display = 'block';
       video.style.display = 'none';
 
-      // Add the captured photo to gallery
-      const img = document.createElement('img');
-      img.src = canvas.toDataURL('image/png');
-      img.onclick = () => {
-        const newCanvas = document.createElement('canvas');
-        newCanvas.width = canvas.width;
-        newCanvas.height = canvas.height;
-        newCanvas.getContext('2d').drawImage(img, 0, 0);
-        gallery.appendChild(newCanvas);
-      };
-      photos.push(img);
-      updateGallery();
+      if (bwApplied) {
+        applyBW(); // Reapply the B/W effect if it was applied before capturing
+      }
     }
 
     function flashEffect() {
@@ -251,10 +226,12 @@
     }
 
     function applyBW() {
+      bwApplied = true;
       canvas.style.filter = 'grayscale(100%)';
     }
 
     function normal() {
+      bwApplied = false;
       canvas.style.filter = 'none';
     }
 
@@ -286,11 +263,6 @@
       context.drawImage(temp, canvas.width / 2, 0, canvas.width / 2, canvas.height / 2);
       context.drawImage(temp, 0, canvas.height / 2, canvas.width / 2, canvas.height / 2);
       context.drawImage(temp, canvas.width / 2, canvas.height / 2, canvas.width / 2, canvas.height / 2);
-    }
-
-    function updateGallery() {
-      gallery.innerHTML = '';
-      photos.forEach(photo => gallery.appendChild(photo));
     }
   </script>
 
