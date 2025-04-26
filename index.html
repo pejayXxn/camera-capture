@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Camera Capture</title>
+  <title>Camera By Pejay</title>
   <style>
     body {
       margin: 0;
@@ -150,6 +150,13 @@
       .then(stream => {
         currentStream = stream;
         video.srcObject = stream;
+
+        // Fix front camera mirroring
+        if (facingMode === 'user') {
+          video.style.transform = 'scaleX(-1)';
+        } else {
+          video.style.transform = 'none';
+        }
       })
       .catch(err => {
         alert('Camera access was denied.');
