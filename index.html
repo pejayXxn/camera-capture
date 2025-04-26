@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Camera By Pejay</title>
+  <title>Camera Capture</title>
   <style>
     body {
       margin: 0;
@@ -105,7 +105,7 @@
 
   <div id="flash"></div>
   <div id="countdown"></div>
-  <h1>Camera App</h1>
+  <h1>Camera by Pejay</h1>
 
   <div class="camera-view">
     <video id="video" autoplay playsinline></video>
@@ -193,6 +193,16 @@
       flashEffect();
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
+
+      // Reset any previous transforms
+      context.setTransform(1, 0, 0, 1, 0, 0);
+
+      // If mirrored (front cam), flip the canvas drawing
+      if (video.style.transform === 'scaleX(-1)') {
+        context.translate(canvas.width, 0);
+        context.scale(-1, 1);
+      }
+
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
       canvas.style.display = 'block';
       video.style.display = 'none';
