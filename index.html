@@ -2,128 +2,185 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Camera Capture and Collage</title>
+  <title>Camera Capture</title>
   <style>
     body {
+      background: #121212;
+      color: #fff;
       font-family: Arial, sans-serif;
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
     }
-    video {
+
+    #camera-container {
+      position: relative;
+      width: 90%;
+      max-width: 400px;
+      border: 8px solid #333;
+      border-radius: 20px;
+      overflow: hidden;
+      background: #000;
+    }
+
+    video, canvas {
       width: 100%;
       height: auto;
-      border: 1px solid black;
-      margin-bottom: 20px;
+      border-radius: 12px;
     }
-    #canvas {
-      display: none;
-    }
-    .bw-filter {
-      filter: grayscale(100%);
-    }
-    .collage {
+
+    #controls {
+      margin-top: 10px;
       display: flex;
-      justify-content: center;
       flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
     }
-    .collage img {
-      margin: 10px;
-      border: 2px solid black;
+
+    button {
+      padding: 10px 15px;
+      background: #444;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s;
     }
-    .two-box img {
-      width: 45%;
+
+    button:hover {
+      background: #666;
     }
-    .four-box img {
-      width: 45%;
+
+    #photos {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .photo-item {
+      position: relative;
+    }
+
+    .photo-item img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 2px solid white;
     }
   </style>
 </head>
 <body>
 
-  <h1>Camera Capture and Edit</h1>
+  <div id="camera-container">
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+  </div>
 
-  <!-- Video display -->
-  <video id="video" autoplay></video>
+  <div id="controls">
+    <button onclick="capture()">Capture</button>
+    <button onclick="toggleBW()">Black & White</button>
+    <button onclick="downloadPhoto()">Download</button>
+    <button onclick="deletePhotos()">Delete All</button>
+    <button onclick="setCollage('normal')">Normal</button>
+    <button onclick="setCollage('2box')">2 Box</button>
+    <button onclick="setCollage('4box')">4 Box</button>
+  </div>
 
-  <!-- Canvas to capture photo -->
-  <canvas id="canvas"></canvas>
-
-  <!-- Buttons -->
-  <button id="capture">Capture</button>
-  <button id="bw-filter">Black and White</button>
-  <button id="two-box">2-Box Layout</button>
-  <button id="four-box">4-Box Layout</button>
-  <button id="normal">Normal Layout</button>
-
-  <div id="collage" class="collage"></div>
+  <div id="photos"></div>
 
   <script>
-    const videoElement = document.getElementById('video');
-    const canvasElement = document.getElementById('canvas');
-    const captureButton = document.getElementById('capture');
-    const bwFilterButton = document.getElementById('bw-filter');
-    const twoBoxButton = document.getElementById('two-box');
-    const fourBoxButton = document.getElementById('four-box');
-    const normalButton = document.getElementById('normal');
-    const collageContainer = document.getElementById('collage');
-    const context = canvasElement.getContext('2d');
-    let capturedImages = [];
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const photos = document.getElementById('photos');
+    let isBW = false;
+    let collageMode = 'normal';
 
-    // Request camera permission
-    async function startCamera() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        videoElement.srcObject = stream;
-      } catch (error) {
-        console.log('Error accessing the camera: ', error);
-        alert('Please grant permission to access the camera.');
+    // Ask permission and start camera
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => {
+        alert("Error accessing camera: " + err);
+      });
+
+    function capture() {
+      const context = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      if (isBW) {
+        let imgData = context.getImageData(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < imgData.data.length; i += 4) {
+          let avg = (imgData.data[i] + imgData.data[i+1] + imgData.data[i+2]) / 3;
+          imgData.data[i] = imgData.data[i+1] = imgData.data[i+2] = avg;
+        }
+        context.putImageData(imgData, 0, 0);
+      }
+
+      const img = new Image();
+      img.src = canvas.toDataURL('image/png');
+      const photoItem = document.createElement('div');
+      photoItem.className = 'photo-item';
+      photoItem.appendChild(img);
+      photos.appendChild(photoItem);
+
+      updateCollage();
+    }
+
+    function toggleBW() {
+      isBW = !isBW;
+      alert("Black & White mode: " + (isBW ? "ON" : "OFF"));
+    }
+
+    function downloadPhoto() {
+      if (photos.lastChild) {
+        const a = document.createElement('a');
+        a.href = photos.lastChild.querySelector('img').src;
+        a.download = 'captured_photo.png';
+        a.click();
+      } else {
+        alert("No photo to download!");
       }
     }
 
-    // Capture photo
-    captureButton.addEventListener('click', () => {
-      canvasElement.width = videoElement.videoWidth;
-      canvasElement.height = videoElement.videoHeight;
-      context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-      capturedImages.push(canvasElement.toDataURL());
-      displayImages();
-    });
-
-    // Apply black-and-white filter
-    bwFilterButton.addEventListener('click', () => {
-      canvasElement.classList.toggle('bw-filter');
-    });
-
-    // Display images in collage layout
-    function displayImages() {
-      collageContainer.innerHTML = '';
-      capturedImages.forEach((imgData) => {
-        const imgElement = document.createElement('img');
-        imgElement.src = imgData;
-        collageContainer.appendChild(imgElement);
-      });
+    function deletePhotos() {
+      photos.innerHTML = '';
     }
 
-    // Apply 2-box layout
-    twoBoxButton.addEventListener('click', () => {
-      collageContainer.classList.remove('four-box', 'normal');
-      collageContainer.classList.add('two-box');
-    });
+    function setCollage(mode) {
+      collageMode = mode;
+      updateCollage();
+    }
 
-    // Apply 4-box layout
-    fourBoxButton.addEventListener('click', () => {
-      collageContainer.classList.remove('two-box', 'normal');
-      collageContainer.classList.add('four-box');
-    });
-
-    // Apply normal layout
-    normalButton.addEventListener('click', () => {
-      collageContainer.classList.remove('two-box', 'four-box');
-      collageContainer.classList.add('normal');
-    });
-
-    // Start the camera on page load
-    startCamera();
+    function updateCollage() {
+      if (collageMode === 'normal') {
+        photos.style.flexDirection = 'row';
+        photos.style.flexWrap = 'wrap';
+      } else if (collageMode === '2box') {
+        photos.style.flexDirection = 'row';
+        photos.style.flexWrap = 'wrap';
+        photos.childNodes.forEach(photo => {
+          photo.querySelector('img').style.width = 'calc(50vw - 30px)';
+          photo.querySelector('img').style.height = 'auto';
+        });
+      } else if (collageMode === '4box') {
+        photos.style.flexDirection = 'row';
+        photos.style.flexWrap = 'wrap';
+        photos.childNodes.forEach(photo => {
+          photo.querySelector('img').style.width = 'calc(25vw - 20px)';
+          photo.querySelector('img').style.height = 'auto';
+        });
+      }
+    }
   </script>
 
 </body>
