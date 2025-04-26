@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Camera Capture</title>
+  <title>Camera by Pejay</title>
   <style>
     body {
       margin: 0;
       padding: 0;
-      background: linear-gradient(45deg, #1e3c72, #2a5298); /* Cool gradient background */
+      background: black;
       font-family: 'Arial', sans-serif;
       display: flex;
       flex-direction: column;
@@ -15,7 +15,6 @@
       height: 100vh;
       overflow: hidden;
       position: relative;
-      color: white;
     }
 
     #flash {
@@ -66,30 +65,25 @@
 
     .controls {
       width: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      padding: 15px;
+      background: #111;
+      padding: 10px;
       display: flex;
       flex-wrap: wrap;
-      justify-content: space-around;
+      justify-content: center;
       align-items: center;
       border-top: 2px solid #222;
-      position: absolute;
-      bottom: 0;
-      z-index: 3;
     }
 
     button, select {
-      background: #333;
+      background: #222;
       border: none;
       color: white;
-      padding: 15px 30px;
-      margin: 10px;
-      font-size: 16px;
-      border-radius: 10px;
+      padding: 10px 15px;
+      margin: 5px;
+      font-size: 14px;
+      border-radius: 50px;
       cursor: pointer;
       transition: background 0.3s;
-      min-width: 150px;
-      text-align: center;
     }
 
     button:hover, select:hover {
@@ -100,75 +94,14 @@
       position: absolute;
       top: 10px;
       color: white;
-      font-size: 24px;
+      font-size: 18px;
       text-align: center;
       width: 100%;
       z-index: 3;
     }
 
-    .filter-select {
-      background: #444;
-      border-radius: 10px;
-      padding: 10px;
-      font-size: 16px;
-      color: white;
-    }
-
-    .filter-menu {
-      position: absolute;
-      background-color: rgba(0, 0, 0, 0.7);
-      padding: 10px;
-      border-radius: 8px;
-      top: 100px;
-      display: none;
-      z-index: 4;
-    }
-
-    .filter-menu button {
-      background-color: #333;
-      padding: 10px 15px;
-      margin: 5px;
-      border-radius: 8px;
-      color: white;
-    }
-
-    .filter-menu button:hover {
-      background: #444;
-    }
-
-    .button-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-top: 20px;
-      z-index: 3;
-      position: absolute;
-      bottom: 30px;
-    }
-
-    .control-buttons {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      max-width: 100%;
-      width: 90%;
-    }
-
-    .control-buttons button {
-      margin: 10px;
-      padding: 10px 20px;
-    }
-
-    .extra-settings {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .extra-settings select {
-      margin: 5px;
-      padding: 10px 15px;
+    #filterSelect {
+      margin-left: 10px;
     }
   </style>
 </head>
@@ -183,61 +116,51 @@
     <canvas id="canvas"></canvas>
   </div>
 
-  <div class="button-container">
-    <div class="control-buttons">
-      <button onclick="startTimerCapture()">Capture</button>
-      <button onclick="download()">Download</button>
-      <button onclick="clearPhoto()">Clear</button>
-      <button onclick="applyBW()">B&W</button>
-      <button onclick="collage2()">2 Box</button>
-      <button onclick="collage4()">4 Box</button>
-      <button onclick="switchCamera('user')">Front Cam</button>
-      <button onclick="switchCamera('environment')">Back Cam</button>
-      <button onclick="toggleFilterMenu()">Filters</button>
-      <button onclick="startAutoCapture()">Auto Capture</button> <!-- Auto Capture Button -->
-    </div>
-
-    <div class="extra-settings">
-      <select id="autoCaptureShots">
-        <option value="3">3 Shots</option>
-        <option value="5">5 Shots</option>
-        <option value="10">10 Shots</option>
-      </select>
-      <select id="autoCaptureInterval">
-        <option value="3">Interval: 3s</option>
-        <option value="5">Interval: 5s</option>
-        <option value="10">Interval: 10s</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="filter-menu" id="filterMenu">
-    <button onclick="applyFilter('grayscale(100%)')">Black & White</button>
-    <button onclick="applyFilter('sepia(100%)')">Sepia</button>
-    <button onclick="applyFilter('contrast(200%)')">High Contrast</button>
-    <button onclick="applyFilter('invert(100%)')">Invert</button>
-    <button onclick="applyFilter('brightness(150%)')">Brighten</button>
+  <div class="controls">
+    <button onclick="startTimerCapture()">Capture</button>
+    <select id="timerSelect">
+      <option value="0">Timer: Off</option>
+      <option value="3">Timer: 3s</option>
+      <option value="5">Timer: 5s</option>
+      <option value="10">Timer: 10s</option>
+    </select>
+    <select id="filterSelect" onchange="applyFilter()">
+      <option value="none">No Filter</option>
+      <option value="grayscale(100%)">Black & White</option>
+      <option value="sepia(100%)">Sepia</option>
+      <option value="contrast(150%) brightness(120%)">Vintage</option>
+      <option value="brightness(120%)">Warm</option>
+      <option value="brightness(80%)">Cool</option>
+      <option value="invert(100%)">Invert</option>
+    </select>
+    <button onclick="download()">Download</button>
+    <button onclick="clearPhoto()">Clear</button>
+    <button onclick="collage2()">2 Box</button>
+    <button onclick="collage4()">4 Box</button>
+    <button onclick="normal()">Normal</button>
+    <button onclick="switchCamera('user')">Front Cam</button>
+    <button onclick="switchCamera('environment')">Back Cam</button>
   </div>
 
   <script>
     let currentStream;
+    let isFrontCamera = false;
+    let currentFilter = "none";
+
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const context = canvas.getContext('2d');
     const flash = document.getElementById('flash');
     const countdown = document.getElementById('countdown');
-    const autoCaptureShots = document.getElementById('autoCaptureShots');
-    const autoCaptureInterval = document.getElementById('autoCaptureInterval');
-    const filterMenu = document.getElementById('filterMenu');
-
-    let autoCaptureActive = false;
-    let autoCaptureShotsCount = 0;
-    let autoCaptureIntervalTime = 0;
+    const timerSelect = document.getElementById('timerSelect');
+    const filterSelect = document.getElementById('filterSelect');
 
     function startCamera(facingMode = 'environment') {
       if (currentStream) {
         currentStream.getTracks().forEach(track => track.stop());
       }
+
+      isFrontCamera = (facingMode === 'user');
 
       navigator.mediaDevices.getUserMedia({
         video: { facingMode: facingMode }
@@ -245,12 +168,7 @@
       .then(stream => {
         currentStream = stream;
         video.srcObject = stream;
-
-        if (facingMode === 'user') {
-          video.style.transform = 'scaleX(1)'; // Front camera should not be mirrored
-        } else {
-          video.style.transform = 'none';
-        }
+        video.style.transform = isFrontCamera ? 'scaleX(-1)' : 'none';
       })
       .catch(err => {
         alert('Camera access was denied.');
@@ -258,7 +176,7 @@
       });
     }
 
-    startCamera(); // Start with back cam
+    startCamera();
 
     function switchCamera(mode) {
       startCamera(mode);
@@ -266,23 +184,35 @@
     }
 
     function startTimerCapture() {
-      let delay = 3; // Default 3 seconds
-      countdown.innerText = delay;
-      let interval = setInterval(() => {
-        delay--;
-        countdown.innerText = delay > 0 ? delay : '';
-        if (delay <= 0) {
-          clearInterval(interval);
-          capture();
-        }
-      }, 1000);
+      let delay = parseInt(timerSelect.value);
+      if (delay === 0) {
+        capture();
+      } else {
+        let count = delay;
+        countdown.innerText = count;
+        let interval = setInterval(() => {
+          count--;
+          countdown.innerText = count > 0 ? count : '';
+          if (count <= 0) {
+            clearInterval(interval);
+            capture();
+          }
+        }, 1000);
+      }
     }
 
     function capture() {
       flashEffect();
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
+      context.save();
+      if (isFrontCamera) {
+        context.translate(canvas.width, 0);
+        context.scale(-1, 1);
+      }
+      context.filter = currentFilter;
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      context.restore();
       canvas.style.display = 'block';
       video.style.display = 'none';
     }
@@ -307,35 +237,61 @@
       video.style.display = 'block';
     }
 
-    function applyBW() {
-      applyFilter('grayscale(100%)');
-    }
-
-    function applyFilter(filter) {
-      canvas.style.filter = filter;
-    }
-
-    function toggleFilterMenu() {
-      filterMenu.style.display = filterMenu.style.display === 'none' ? 'block' : 'none';
-    }
-
-    function startAutoCapture() {
-      autoCaptureShotsCount = parseInt(autoCaptureShots.value);
-      autoCaptureIntervalTime = parseInt(autoCaptureInterval.value) * 1000;
-      captureAutoShots();
-    }
-
-    function captureAutoShots() {
-      if (autoCaptureShotsCount > 0) {
-        setTimeout(() => {
-          capture();
-          autoCaptureShotsCount--;
-          if (autoCaptureShotsCount > 0) {
-            captureAutoShots();
-          }
-        }, autoCaptureIntervalTime);
+    function applyFilter() {
+      currentFilter = filterSelect.value;
+      if (canvas.style.display === 'block') {
+        redrawCanvas();
       }
     }
+
+    function redrawCanvas() {
+      context.save();
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      if (isFrontCamera) {
+        context.translate(canvas.width, 0);
+        context.scale(-1, 1);
+      }
+      context.filter = currentFilter;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      context.restore();
+    }
+
+    function collage2() {
+      if (canvas.style.display === 'none') return;
+
+      const temp = document.createElement('canvas');
+      const tempCtx = temp.getContext('2d');
+      temp.width = canvas.width;
+      temp.height = canvas.height;
+      tempCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height);
+
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
+      context.drawImage(temp, 0, 0, canvas.width / 2, canvas.height);
+      context.drawImage(temp, canvas.width / 2, 0, canvas.width / 2, canvas.height);
+    }
+
+    function collage4() {
+      if (canvas.style.display === 'none') return;
+
+      const temp = document.createElement('canvas');
+      const tempCtx = temp.getContext('2d');
+      temp.width = canvas.width;
+      temp.height = canvas.height;
+      tempCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height);
+
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
+      context.drawImage(temp, 0, 0, canvas.width / 2, canvas.height / 2);
+      context.drawImage(temp, canvas.width / 2, 0, canvas.width / 2, canvas.height / 2);
+      context.drawImage(temp, 0, canvas.height / 2, canvas.width / 2, canvas.height / 2);
+      context.drawImage(temp, canvas.width / 2, canvas.height / 2, canvas.width / 2, canvas.height / 2);
+    }
+
+    function normal() {
+      clearPhoto();
+    }
   </script>
+
 </body>
 </html>
