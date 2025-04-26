@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Camera by Pejay</title>
+  <title>Camera Capture by Pejay</title>
   <style>
     body {
       margin: 0;
@@ -102,26 +102,24 @@
 
     .gallery {
       display: flex;
-      overflow-x: scroll;
+      flex-wrap: wrap;
       margin-top: 20px;
-      width: 100%;
-      padding: 10px;
     }
 
     .gallery img {
-      width: 150px;
-      height: 150px;
+      width: 100px;
+      height: 100px;
       object-fit: cover;
       margin: 5px;
+      cursor: pointer;
     }
-
   </style>
 </head>
 <body>
 
   <div id="flash"></div>
   <div id="countdown"></div>
-  <h1>Camera by Pejay</h1>
+  <h1>Camera Capture by Pejay</h1>
 
   <div class="camera-view">
     <video id="video" autoplay playsinline></video>
@@ -157,7 +155,8 @@
     const countdown = document.getElementById('countdown');
     const timerSelect = document.getElementById('timerSelect');
     const gallery = document.getElementById('gallery');
-    let bwApplied = false;
+
+    let photos = [];
 
     function startCamera(facingMode = 'environment') {
       if (currentStream) {
@@ -217,17 +216,18 @@
       canvas.style.display = 'block';
       video.style.display = 'none';
 
-      if (bwApplied) {
-        applyBW();
-      }
-
-      const img = new Image();
+      // Add the captured photo to gallery
+      const img = document.createElement('img');
       img.src = canvas.toDataURL('image/png');
-      img.onload = function() {
-        const preview = document.createElement('img');
-        preview.src = img.src;
-        gallery.appendChild(preview);
+      img.onclick = () => {
+        const newCanvas = document.createElement('canvas');
+        newCanvas.width = canvas.width;
+        newCanvas.height = canvas.height;
+        newCanvas.getContext('2d').drawImage(img, 0, 0);
+        gallery.appendChild(newCanvas);
       };
+      photos.push(img);
+      updateGallery();
     }
 
     function flashEffect() {
@@ -252,12 +252,10 @@
 
     function applyBW() {
       canvas.style.filter = 'grayscale(100%)';
-      bwApplied = true;
     }
 
     function normal() {
       canvas.style.filter = 'none';
-      bwApplied = false;
     }
 
     function collage2() {
@@ -288,6 +286,11 @@
       context.drawImage(temp, canvas.width / 2, 0, canvas.width / 2, canvas.height / 2);
       context.drawImage(temp, 0, canvas.height / 2, canvas.width / 2, canvas.height / 2);
       context.drawImage(temp, canvas.width / 2, canvas.height / 2, canvas.width / 2, canvas.height / 2);
+    }
+
+    function updateGallery() {
+      gallery.innerHTML = '';
+      photos.forEach(photo => gallery.appendChild(photo));
     }
   </script>
 
