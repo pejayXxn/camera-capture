@@ -2,186 +2,158 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Camera Capture</title>
+  <title>Camera By Ejay</title>
   <style>
     body {
-      background: #121212;
-      color: #fff;
-      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #000;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       height: 100vh;
-      margin: 0;
+      color: white;
+      font-family: Arial, sans-serif;
     }
-
-    #camera-container {
-      position: relative;
+    h1 {
+      margin-top: 20px;
+      font-size: 24px;
+    }
+    video, canvas {
       width: 90%;
       max-width: 400px;
-      border: 8px solid #333;
-      border-radius: 20px;
-      overflow: hidden;
-      background: #000;
-    }
-
-    video, canvas {
-      width: 100%;
       height: auto;
+      margin-top: 10px;
       border-radius: 12px;
+      background: #222;
     }
-
-    #controls {
+    .buttons {
       margin-top: 10px;
       display: flex;
       flex-wrap: wrap;
-      justify-content: center;
       gap: 10px;
+      justify-content: center;
     }
-
     button {
-      padding: 10px 15px;
-      background: #444;
+      background: #333;
       color: white;
       border: none;
-      border-radius: 10px;
-      font-size: 14px;
+      padding: 10px 15px;
+      border-radius: 8px;
       cursor: pointer;
-      transition: background 0.3s;
+      font-size: 14px;
     }
-
     button:hover {
-      background: #666;
-    }
-
-    #photos {
-      margin-top: 20px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-    }
-
-    .photo-item {
-      position: relative;
-    }
-
-    .photo-item img {
-      width: 100px;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 10px;
-      border: 2px solid white;
+      background: #555;
     }
   </style>
 </head>
 <body>
+  <h1>Camera Capture</h1>
 
-  <div id="camera-container">
-    <video id="video" autoplay playsinline></video>
-    <canvas id="canvas" style="display:none;"></canvas>
-  </div>
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas" style="display: none;"></canvas>
 
-  <div id="controls">
+  <div class="buttons">
     <button onclick="capture()">Capture</button>
-    <button onclick="toggleBW()">Black & White</button>
-    <button onclick="downloadPhoto()">Download</button>
-    <button onclick="deletePhotos()">Delete All</button>
-    <button onclick="setCollage('normal')">Normal</button>
-    <button onclick="setCollage('2box')">2 Box</button>
-    <button onclick="setCollage('4box')">4 Box</button>
+    <button onclick="download()">Download</button>
+    <button onclick="clearPhoto()">Delete</button>
+    <button onclick="normal()">Normal</button>
+    <button onclick="bw()">Black & White</button>
+    <button onclick="collage2()">2 Box</button>
+    <button onclick="collage4()">4 Box</button>
   </div>
-
-  <div id="photos"></div>
 
   <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
-    const photos = document.getElementById('photos');
-    let isBW = false;
-    let collageMode = 'normal';
+    const context = canvas.getContext('2d');
 
-    // Ask permission and start camera
+    // Request camera permission and start video
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(stream => {
         video.srcObject = stream;
       })
       .catch(err => {
-        alert("Error accessing camera: " + err);
+        alert('Camera access denied!');
+        console.error(err);
       });
 
     function capture() {
-      const context = canvas.getContext('2d');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
+      
+      // Flip the context horizontally to match real camera view
+      context.translate(canvas.width, 0);
+      context.scale(-1, 1);
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      context.setTransform(1, 0, 0, 1, 0, 0);
 
-      if (isBW) {
-        let imgData = context.getImageData(0, 0, canvas.width, canvas.height);
-        for (let i = 0; i < imgData.data.length; i += 4) {
-          let avg = (imgData.data[i] + imgData.data[i+1] + imgData.data[i+2]) / 3;
-          imgData.data[i] = imgData.data[i+1] = imgData.data[i+2] = avg;
-        }
-        context.putImageData(imgData, 0, 0);
-      }
-
-      const img = new Image();
-      img.src = canvas.toDataURL('image/png');
-      const photoItem = document.createElement('div');
-      photoItem.className = 'photo-item';
-      photoItem.appendChild(img);
-      photos.appendChild(photoItem);
-
-      updateCollage();
+      canvas.style.display = 'block';
+      video.style.display = 'none';
     }
 
-    function toggleBW() {
-      isBW = !isBW;
-      alert("Black & White mode: " + (isBW ? "ON" : "OFF"));
+    function download() {
+      const link = document.createElement('a');
+      link.download = 'photo.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
     }
 
-    function downloadPhoto() {
-      if (photos.lastChild) {
-        const a = document.createElement('a');
-        a.href = photos.lastChild.querySelector('img').src;
-        a.download = 'captured_photo.png';
-        a.click();
-      } else {
-        alert("No photo to download!");
-      }
+    function clearPhoto() {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.style.display = 'none';
+      video.style.display = 'block';
     }
 
-    function deletePhotos() {
-      photos.innerHTML = '';
+    function normal() {
+      canvas.style.filter = 'none';
     }
 
-    function setCollage(mode) {
-      collageMode = mode;
-      updateCollage();
+    function bw() {
+      canvas.style.filter = 'grayscale(100%)';
     }
 
-    function updateCollage() {
-      if (collageMode === 'normal') {
-        photos.style.flexDirection = 'row';
-        photos.style.flexWrap = 'wrap';
-      } else if (collageMode === '2box') {
-        photos.style.flexDirection = 'row';
-        photos.style.flexWrap = 'wrap';
-        photos.childNodes.forEach(photo => {
-          photo.querySelector('img').style.width = 'calc(50vw - 30px)';
-          photo.querySelector('img').style.height = 'auto';
-        });
-      } else if (collageMode === '4box') {
-        photos.style.flexDirection = 'row';
-        photos.style.flexWrap = 'wrap';
-        photos.childNodes.forEach(photo => {
-          photo.querySelector('img').style.width = 'calc(25vw - 20px)';
-          photo.querySelector('img').style.height = 'auto';
-        });
-      }
+    function collage2() {
+      if (canvas.style.display === 'none') return;
+
+      const tempCanvas = document.createElement('canvas');
+      const tempContext = tempCanvas.getContext('2d');
+
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+
+      // Copy the captured photo
+      tempContext.drawImage(canvas, 0, 0, canvas.width, canvas.height);
+
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw side-by-side
+      context.drawImage(tempCanvas, 0, 0, canvas.width / 2, canvas.height);
+      context.drawImage(tempCanvas, canvas.width / 2, 0, canvas.width / 2, canvas.height);
+    }
+
+    function collage4() {
+      if (canvas.style.display === 'none') return;
+
+      const tempCanvas = document.createElement('canvas');
+      const tempContext = tempCanvas.getContext('2d');
+
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+
+      // Copy the captured photo
+      tempContext.drawImage(canvas, 0, 0, canvas.width, canvas.height);
+
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw 4 small images
+      context.drawImage(tempCanvas, 0, 0, canvas.width / 2, canvas.height / 2);
+      context.drawImage(tempCanvas, canvas.width / 2, 0, canvas.width / 2, canvas.height / 2);
+      context.drawImage(tempCanvas, 0, canvas.height / 2, canvas.width / 2, canvas.height / 2);
+      context.drawImage(tempCanvas, canvas.width / 2, canvas.height / 2, canvas.width / 2, canvas.height / 2);
     }
   </script>
-
 </body>
 </html>
