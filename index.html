@@ -2,96 +2,200 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Camera By Ejay</title>
+  <title>Camera Capture</title>
   <style>
     body {
       margin: 0;
       padding: 0;
-      background: #000;
+      background: black;
+      font-family: 'Arial', sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
       height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #flash {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: white;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 2;
+    }
+
+    #countdown {
+      position: absolute;
       color: white;
-      font-family: Arial, sans-serif;
+      font-size: 100px;
+      z-index: 3;
+      top: 50%;
+      transform: translateY(-50%);
+      font-weight: bold;
     }
-    h1 {
-      margin-top: 20px;
-      font-size: 24px;
+
+    .camera-view {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      position: relative;
+      background: #000;
     }
-    video, canvas {
-      width: 90%;
-      max-width: 400px;
+
+    video {
+      width: 100%;
       height: auto;
-      margin-top: 10px;
-      border-radius: 12px;
-      background: #222;
+      object-fit: cover;
     }
-    .buttons {
-      margin-top: 10px;
+
+    canvas {
+      display: none;
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+    }
+
+    .controls {
+      width: 100%;
+      background: #111;
+      padding: 10px;
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 2px solid #222;
     }
-    button {
-      background: #333;
-      color: white;
+
+    button, select {
+      background: #222;
       border: none;
+      color: white;
       padding: 10px 15px;
-      border-radius: 8px;
-      cursor: pointer;
+      margin: 5px;
       font-size: 14px;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: background 0.3s;
     }
-    button:hover {
-      background: #555;
+
+    button:hover, select:hover {
+      background: #444;
+    }
+
+    h1 {
+      position: absolute;
+      top: 10px;
+      color: white;
+      font-size: 18px;
+      text-align: center;
+      width: 100%;
+      z-index: 3;
     }
   </style>
 </head>
 <body>
-  <h1>Camera Capture</h1>
 
-  <video id="video" autoplay playsinline></video>
-  <canvas id="canvas" style="display: none;"></canvas>
+  <div id="flash"></div>
+  <div id="countdown"></div>
+  <h1>Camera App</h1>
 
-  <div class="buttons">
-    <button onclick="capture()">Capture</button>
+  <div class="camera-view">
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <div class="controls">
+    <button onclick="startTimerCapture()">Capture</button>
+    <select id="timerSelect">
+      <option value="0">Timer: Off</option>
+      <option value="3">Timer: 3s</option>
+      <option value="5">Timer: 5s</option>
+      <option value="10">Timer: 10s</option>
+    </select>
     <button onclick="download()">Download</button>
-    <button onclick="clearPhoto()">Delete</button>
-    <button onclick="normal()">Normal</button>
-    <button onclick="bw()">Black & White</button>
+    <button onclick="clearPhoto()">Clear</button>
+    <button onclick="applyBW()">B&W</button>
     <button onclick="collage2()">2 Box</button>
     <button onclick="collage4()">4 Box</button>
+    <button onclick="normal()">Normal</button>
+    <button onclick="switchCamera('user')">Front Cam</button>
+    <button onclick="switchCamera('environment')">Back Cam</button>
   </div>
 
   <script>
+    let currentStream;
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const context = canvas.getContext('2d');
+    const flash = document.getElementById('flash');
+    const countdown = document.getElementById('countdown');
+    const timerSelect = document.getElementById('timerSelect');
 
-    // Request camera permission and start video
-    navigator.mediaDevices.getUserMedia({ video: true })
+    function startCamera(facingMode = 'environment') {
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+      }
+
+      navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facingMode }
+      })
       .then(stream => {
+        currentStream = stream;
         video.srcObject = stream;
       })
       .catch(err => {
-        alert('Camera access denied!');
+        alert('Camera access was denied.');
         console.error(err);
       });
+    }
+
+    startCamera(); // Start with back cam
+
+    function switchCamera(mode) {
+      startCamera(mode);
+      clearPhoto();
+    }
+
+    function startTimerCapture() {
+      let delay = parseInt(timerSelect.value);
+      if (delay === 0) {
+        capture();
+      } else {
+        let count = delay;
+        countdown.innerText = count;
+        let interval = setInterval(() => {
+          count--;
+          countdown.innerText = count > 0 ? count : '';
+          if (count <= 0) {
+            clearInterval(interval);
+            capture();
+          }
+        }, 1000);
+      }
+    }
 
     function capture() {
+      flashEffect();
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      
-      // Flip the context horizontally to match real camera view
-      context.translate(canvas.width, 0);
-      context.scale(-1, 1);
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      context.setTransform(1, 0, 0, 1, 0, 0);
-
       canvas.style.display = 'block';
       video.style.display = 'none';
+    }
+
+    function flashEffect() {
+      flash.style.opacity = 1;
+      setTimeout(() => {
+        flash.style.opacity = 0;
+      }, 150);
     }
 
     function download() {
@@ -107,53 +211,44 @@
       video.style.display = 'block';
     }
 
-    function normal() {
-      canvas.style.filter = 'none';
+    function applyBW() {
+      canvas.style.filter = 'grayscale(100%)';
     }
 
-    function bw() {
-      canvas.style.filter = 'grayscale(100%)';
+    function normal() {
+      canvas.style.filter = 'none';
     }
 
     function collage2() {
       if (canvas.style.display === 'none') return;
 
-      const tempCanvas = document.createElement('canvas');
-      const tempContext = tempCanvas.getContext('2d');
-
-      tempCanvas.width = canvas.width;
-      tempCanvas.height = canvas.height;
-
-      // Copy the captured photo
-      tempContext.drawImage(canvas, 0, 0, canvas.width, canvas.height);
+      const temp = document.createElement('canvas');
+      const tempCtx = temp.getContext('2d');
+      temp.width = canvas.width;
+      temp.height = canvas.height;
+      tempCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height);
 
       context.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Draw side-by-side
-      context.drawImage(tempCanvas, 0, 0, canvas.width / 2, canvas.height);
-      context.drawImage(tempCanvas, canvas.width / 2, 0, canvas.width / 2, canvas.height);
+      context.drawImage(temp, 0, 0, canvas.width / 2, canvas.height);
+      context.drawImage(temp, canvas.width / 2, 0, canvas.width / 2, canvas.height);
     }
 
     function collage4() {
       if (canvas.style.display === 'none') return;
 
-      const tempCanvas = document.createElement('canvas');
-      const tempContext = tempCanvas.getContext('2d');
-
-      tempCanvas.width = canvas.width;
-      tempCanvas.height = canvas.height;
-
-      // Copy the captured photo
-      tempContext.drawImage(canvas, 0, 0, canvas.width, canvas.height);
+      const temp = document.createElement('canvas');
+      const tempCtx = temp.getContext('2d');
+      temp.width = canvas.width;
+      temp.height = canvas.height;
+      tempCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height);
 
       context.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Draw 4 small images
-      context.drawImage(tempCanvas, 0, 0, canvas.width / 2, canvas.height / 2);
-      context.drawImage(tempCanvas, canvas.width / 2, 0, canvas.width / 2, canvas.height / 2);
-      context.drawImage(tempCanvas, 0, canvas.height / 2, canvas.width / 2, canvas.height / 2);
-      context.drawImage(tempCanvas, canvas.width / 2, canvas.height / 2, canvas.width / 2, canvas.height / 2);
+      context.drawImage(temp, 0, 0, canvas.width / 2, canvas.height / 2);
+      context.drawImage(temp, canvas.width / 2, 0, canvas.width / 2, canvas.height / 2);
+      context.drawImage(temp, 0, canvas.height / 2, canvas.width / 2, canvas.height / 2);
+      context.drawImage(temp, canvas.width / 2, canvas.height / 2, canvas.width / 2, canvas.height / 2);
     }
   </script>
+
 </body>
 </html>
